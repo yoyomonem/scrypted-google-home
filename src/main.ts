@@ -319,6 +319,7 @@ class GoogleHome extends ScryptedDeviceBase implements HttpRequestHandler {
     }
 
     async onRequest(request: HttpRequest, response: HttpResponse): Promise<void> {
+        this.log.i(request.body);
         const body = JSON.parse(request.body);
         const result = await this.app.handler(body, request.headers as Headers);
         response.send(JSON.stringify(result.body), {
