@@ -1,4 +1,4 @@
-import { ColorSettingTemperature, HttpRequest, HttpRequestHandler, HttpResponse, ScryptedDevice, ScryptedDeviceBase, ScryptedDeviceType, ScryptedInterface } from '@scrypted/sdk';
+import { ColorSettingTemperature, EngineIOHandler, HttpRequest, HttpRequestHandler, HttpResponse, RTCAVMessage, ScryptedDevice, ScryptedDeviceBase, ScryptedDeviceType, ScryptedInterface, ScryptedMimeTypes, VideoCamera } from '@scrypted/sdk';
 import sdk from '@scrypted/sdk';
 import { SmartHomeV1DisconnectRequest, SmartHomeV1DisconnectResponse, SmartHomeV1ExecuteRequest, SmartHomeV1ExecuteResponse, SmartHomeV1ExecuteResponseCommands, SmartHomeV1QueryRequest, SmartHomeV1QueryResponse, SmartHomeV1ReportStateRequest, SmartHomeV1SyncDevices, SmartHomeV1SyncRequest, SmartHomeV1SyncResponse } from 'actions-on-google/dist/service/smarthome/api/v1';
 import { smarthome } from 'actions-on-google/dist/service/smarthome';
@@ -6,13 +6,16 @@ import { Headers } from 'actions-on-google/dist/framework';
 import { supportedTypes } from './common';
 import axios from 'axios';
 import throttle from 'lodash/throttle';
+import Url from 'url-parse';
+import qs from 'query-string';
 
 import './types';
 import './commands';
 
 import { commandHandlers } from './handlers';
+import { canAccess } from './commands/camerastream';
 
-const { systemManager } = sdk;
+const { systemManager, mediaManager } = sdk;
 
 function uuidv4() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
@@ -37,7 +40,7 @@ function isSyncable(device: ScryptedDevice): boolean {
     return true;
 }
 
-class GoogleHome extends ScryptedDeviceBase implements HttpRequestHandler {
+class GoogleHome extends ScryptedDeviceBase implements HttpRequestHandler, EngineIOHandler {
     linkTracker = localStorage.getItem('linkTracker');
     agentUserId = localStorage.getItem('agentUserId');
     app = smarthome({
@@ -68,6 +71,33 @@ class GoogleHome extends ScryptedDeviceBase implements HttpRequestHandler {
             if (source)
                 this.queueReportState(source);
         });
+    }
+
+    onConnection(request: HttpRequest, webSocketUrl: string): void {
+        const ws = new WebSocket(webSocketUrl);
+
+        ws.onmessage = async (message) => {
+            const url = new Url(message.data);
+            const id = url.host;
+            const {token} = qs.parseUrl(message.data).query;
+            const device = systemManager.getDeviceById(id) as ScryptedDevice & VideoCamera;
+            if (!canAccess(device, token as string)) {
+                ws.close();
+                return;
+            }
+            
+            const videoStream = await device.getVideoStream();
+            const offer = await mediaManager.convertMediaObjectToBuffer(
+              videoStream,
+              ScryptedMimeTypes.RTCAVOffer
+            );
+
+            ws.send(offer.toString());
+            
+            const answer = await new Promise(resolve => ws.onmessage = (message) => resolve(message.data));
+            const mo = mediaManager.createMediaObject(Buffer.from(answer), ScryptedMimeTypes.RTCAVAnswer);
+            mediaManager.convertMediaObjectToBuffer(mo, ScryptedMimeTypes.RTCAVOffer);
+        }
     }
 
     queueReportState(device: ScryptedDevice) {
@@ -105,6 +135,7 @@ class GoogleHome extends ScryptedDeviceBase implements HttpRequestHandler {
             if (!probe)
                 continue;
 
+            probe.roomHint = device.room;
             ret.payload.devices.push(probe);
 
             if (this.storage.getItem(`link-${device.id}`) !== this.linkTracker) {
@@ -155,12 +186,14 @@ class GoogleHome extends ScryptedDeviceBase implements HttpRequestHandler {
                 try {
                     const status = await supportedType.query(device);
                     ret.payload.devices[queryDevice.id] = Object.assign({
+                        status: 'SUCCESS',
                         online: true,
                     }, status);
                 }
                 catch (e) {
                     this.log.e(`query failure for ${device.name}`);
                     ret.payload.devices[queryDevice.id] = {
+                        status: 'ERROR',
                         online: false,
                     };
                 }
@@ -322,7 +355,9 @@ class GoogleHome extends ScryptedDeviceBase implements HttpRequestHandler {
         this.log.i(request.body);
         const body = JSON.parse(request.body);
         const result = await this.app.handler(body, request.headers as Headers);
-        response.send(JSON.stringify(result.body), {
+        const res = JSON.stringify(result.body);
+        this.log.i(res);
+        response.send(res, {
             headers: result.headers,
             code: result.status,
         })
