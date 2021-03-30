@@ -5,8 +5,8 @@ import { commandHandlers } from "../handlers";
 commandHandlers['action.devices.commands.OnOff'] = async (device: ScryptedDevice & OnOff, execution) => {
     const ret = executeResponse(device);
     if (execution.params.on === false)
-        (device as OnOff).turnOff();
+        device.turnOff();
     else
-        (device as OnOff).turnOn();
+        device.turnOn();
     return ret;
 }
