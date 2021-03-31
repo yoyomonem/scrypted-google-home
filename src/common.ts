@@ -1,4 +1,3 @@
-
 import { ScryptedDevice, ScryptedDeviceType } from '@scrypted/sdk';
 import sdk from '@scrypted/sdk';
 import { SmartHomeV1ExecuteResponseCommands, SmartHomeV1SyncDevices } from 'actions-on-google/dist/service/smarthome/api/v1';
