@@ -37,10 +37,17 @@ document.addEventListener("DOMContentLoaded", function (event) {
           id: json.id,
           candidates: [],
         };
-  
+
         const pc = new RTCPeerConnection(json.configuration);
-        pc.onconnectionstatechange = () => console.log(pc.connectionState);
-        pc.onsignalingstatechange = () => console.log(pc.connectionState);
+        const checkConn = () => {
+          pc.onconnectionstatechange = () => console.log(pc.connectionState);
+          if (pc.iceConnectionState === 'failed' || pc.connectionState === 'failed') {
+            window.close();
+          }
+        }
+
+        pc.onconnectionstatechange = checkConn;
+        pc.onsignalingstatechange = checkConn;
         pc.ontrack = () => {
           const mediaStream = new MediaStream(
             pc.getReceivers().map((receiver) => receiver.track)
@@ -60,7 +67,7 @@ document.addEventListener("DOMContentLoaded", function (event) {
         await sleep(2000);
         socket.send(JSON.stringify(answerObject));
       })
-  
+
     });
 
     return null;
