@@ -1,5 +1,5 @@
 import { Brightness, OnOff, ScryptedDevice, ScryptedDeviceType, ScryptedInterface } from '@scrypted/sdk';
-import { addSupportedType, syncResponse } from '../common';
+import { addSupportedType, queryResponse, syncResponse } from '../common';
 
 addSupportedType({
     type: ScryptedDeviceType.Switch,
@@ -15,7 +15,7 @@ addSupportedType({
         return ret;
     },
     query: async (device: ScryptedDevice & OnOff & Brightness) => {
-        const ret: any = {};
+        const ret = queryResponse(device);
         ret.on = device.on;
         if (device.interfaces.includes(ScryptedInterface.Brightness))
             ret.brightness = device.brightness;

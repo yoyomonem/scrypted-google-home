@@ -1,5 +1,5 @@
 import { BinarySensor, ScryptedDevice, ScryptedDeviceType, ScryptedInterface } from '@scrypted/sdk';
-import { addSupportedType, syncResponse } from '../common';
+import { addSupportedType, queryResponse, syncResponse } from '../common';
 
 addSupportedType({
     type: ScryptedDeviceType.Sensor,
@@ -13,7 +13,7 @@ addSupportedType({
         return ret;
     },
     query: async (device: ScryptedDevice & BinarySensor) => {
-        const ret: any= {};
+        const ret = queryResponse(device);
         ret.openPercent = device.binaryState ? 100 : 0;
         return ret;
     },

@@ -1,5 +1,5 @@
 import { OnOff, ScryptedDevice, ScryptedDeviceType, ScryptedInterface } from '@scrypted/sdk';
-import { addSupportedType, syncResponse } from '../common';
+import { addSupportedType, queryResponse, syncResponse } from '../common';
 
 addSupportedType({
     type: ScryptedDeviceType.Outlet,
@@ -12,7 +12,7 @@ addSupportedType({
         return ret;
     },
     query: async (device: ScryptedDevice & OnOff) => {
-        const ret: any= {};
+        const ret = queryResponse(device);
         ret.on = device.on;
         return ret;
     },

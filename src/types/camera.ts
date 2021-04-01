@@ -1,5 +1,5 @@
 import { ScryptedDevice, ScryptedDeviceType, ScryptedInterface } from '@scrypted/sdk';
-import { addSupportedType, syncResponse } from '../common';
+import { addSupportedType, queryResponse, syncResponse } from '../common';
 
 addSupportedType({
     type: ScryptedDeviceType.Camera,
@@ -19,7 +19,7 @@ addSupportedType({
         return ret;
     },
     query: async (device: ScryptedDevice) => {
-        const ret: any = {};
+        const ret = queryResponse(device);
         return ret;
     },
 })

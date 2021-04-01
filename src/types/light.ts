@@ -1,5 +1,5 @@
 import { Brightness, ColorSettingHsv, ColorSettingRgb, ColorSettingTemperature, OnOff, ScryptedDevice, ScryptedDeviceType, ScryptedInterface } from '@scrypted/sdk';
-import { addSupportedType, syncResponse } from '../common';
+import { addSupportedType, queryResponse, syncResponse } from '../common';
 
 addSupportedType({
     type: ScryptedDeviceType.Light,
@@ -33,7 +33,7 @@ addSupportedType({
         return ret;
     },
     query: async (device: ScryptedDevice & OnOff & Brightness & ColorSettingHsv & ColorSettingRgb & ColorSettingTemperature) => {
-        const ret: any= {};
+        const ret = queryResponse(device);
         ret.on = device.on;
         if (device.interfaces.includes(ScryptedInterface.Brightness))
             ret.brightness = device.brightness;

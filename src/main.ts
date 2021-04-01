@@ -1,4 +1,4 @@
-import { ColorSettingTemperature, EngineIOHandler, HttpRequest, HttpRequestHandler, HttpResponse, RTCAVMessage, ScryptedDevice, ScryptedDeviceBase, ScryptedDeviceType, ScryptedInterface, ScryptedMimeTypes, VideoCamera } from '@scrypted/sdk';
+import { ColorSettingTemperature, EngineIOHandler, HttpRequest, HttpRequestHandler, HttpResponse, Refresh, RTCAVMessage, ScryptedDevice, ScryptedDeviceBase, ScryptedDeviceType, ScryptedInterface, ScryptedMimeTypes, VideoCamera } from '@scrypted/sdk';
 import sdk from '@scrypted/sdk';
 import { SmartHomeV1DisconnectRequest, SmartHomeV1DisconnectResponse, SmartHomeV1ExecuteRequest, SmartHomeV1ExecuteResponse, SmartHomeV1ExecuteResponseCommands, SmartHomeV1QueryRequest, SmartHomeV1QueryResponse, SmartHomeV1ReportStateRequest, SmartHomeV1SyncDevices, SmartHomeV1SyncRequest, SmartHomeV1SyncResponse } from 'actions-on-google/dist/service/smarthome/api/v1';
 import { smarthome } from 'actions-on-google/dist/service/smarthome';
@@ -184,6 +184,8 @@ class GoogleHome extends ScryptedDeviceBase implements HttpRequestHandler, Engin
                 }
 
                 try {
+                    if (device.interfaces.includes(ScryptedInterface.Refresh))
+                        (device  as any as Refresh).refresh(null, true);
                     const status = await supportedType.query(device);
                     ret.payload.devices[queryDevice.id] = Object.assign({
                         status: 'SUCCESS',
