@@ -16,13 +16,13 @@ commandHandlers['action.devices.commands.GetCameraStream'] = async (device: Scry
 
     const engineio = await endpointManager.getPublicLocalEndpoint() + 'engine.io/';
     const mo = mediaManager.createMediaObject(engineio, ScryptedMimeTypes.LocalUrl);
-    const cameraStreamAuthToken = await mediaManager.convertMediaObjectToUrl(mo, ScryptedMimeTypes.LocalUrl);
+    const cameraStreamAccessUrl = await mediaManager.convertMediaObjectToUrl(mo, ScryptedMimeTypes.LocalUrl);
 
-    const token = Math.random().toString();
-    tokens[token] = device.id;
+    const cameraStreamAuthToken = `tok-${Math.round(Math.random() * 10000).toString(16)}`;
+    tokens[cameraStreamAuthToken] = device.id;
 
     ret.states = {
-        cameraStreamAccessUrl: `camera://${device.id}?token=${token}`,
+        cameraStreamAccessUrl,
         cameraStreamReceiverAppId: "00F7C5DD",
         cameraStreamAuthToken,
     }

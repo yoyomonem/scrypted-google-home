@@ -16,8 +16,8 @@ document.addEventListener("DOMContentLoaded", function (event) {
   playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, loadRequestData => {
     console.log(loadRequestData);
 
-    const cameraUrl = loadRequestData.media.entity || loadRequestData.media.contentId;
-    const eioUrl = loadRequestData.credentials ?? loadRequestData.media.customData.eioUrl;
+    const eioUrl = loadRequestData.media.entity || loadRequestData.media.contentId;
+    const token = loadRequestData.credentials ?? loadRequestData.media.customData.eioUrl;
     const url = new URL(eioUrl)
     const endpointPath = url.pathname + url.search;
 
@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", function (event) {
 
     const socket = eio(`wss://${url.host}`, options);
     socket.on('open', () => {
-      socket.send(cameraUrl);
+      socket.send(token);
 
       const video = document.getElementById('media');
 

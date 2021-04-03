@@ -73,7 +73,7 @@ class GoogleHome extends ScryptedDeviceBase implements HttpRequestHandler, Engin
         });
     }
 
-    onConnection(request: HttpRequest, webSocketUrl: string): void {
+    async onConnection(request: HttpRequest, webSocketUrl: string) {
         const ws = new WebSocket(webSocketUrl);
 
         ws.onmessage = async (message) => {
@@ -363,9 +363,6 @@ class GoogleHome extends ScryptedDeviceBase implements HttpRequestHandler, Engin
             headers: result.headers,
             code: result.status,
         })
-    }
-    getEndpoint(): string {
-        throw new Error('Method not implemented.');
     }
 }
 

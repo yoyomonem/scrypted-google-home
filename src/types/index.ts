@@ -6,3 +6,4 @@ import './doorbell'
 import './vacuum';
 import './sensor';
 import './garage';
+import './thermostat';
