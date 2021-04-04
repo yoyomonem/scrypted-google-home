@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", function (event) {
     console.log(loadRequestData);
 
     const eioUrl = loadRequestData.media.entity || loadRequestData.media.contentId;
-    const token = loadRequestData.credentials ?? loadRequestData.media.customData.eioUrl;
+    const token = loadRequestData.credentials ?? loadRequestData.media.customData.token;
     const url = new URL(eioUrl)
     const endpointPath = url.pathname + url.search;
 

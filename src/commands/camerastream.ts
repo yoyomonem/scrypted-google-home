@@ -3,12 +3,13 @@ import { executeResponse } from "../common";
 import { commandHandlers } from "../handlers";
 
 import sdk from "@scrypted/sdk";
-const {mediaManager, endpointManager } = sdk;
+const {mediaManager, endpointManager, systemManager } = sdk;
 
 const tokens: { [token: string]: string } = {};
 
-export function canAccess(device: ScryptedDevice, token: string): boolean {
-    return device && tokens[token] === device.id;
+export function canAccess(token: string): ScryptedDevice & VideoCamera {
+    const id = tokens[token];
+    return systemManager.getDeviceById(id) as ScryptedDevice & VideoCamera;
 }
 
 commandHandlers['action.devices.commands.GetCameraStream'] = async (device: ScryptedDevice & VideoCamera, execution) => {

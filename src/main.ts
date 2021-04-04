@@ -77,23 +77,22 @@ class GoogleHome extends ScryptedDeviceBase implements HttpRequestHandler, Engin
         const ws = new WebSocket(webSocketUrl);
 
         ws.onmessage = async (message) => {
-            const url = new Url(message.data);
-            const id = url.host;
-            const {token} = qs.parseUrl(message.data).query;
-            const device = systemManager.getDeviceById(id) as ScryptedDevice & VideoCamera;
-            if (!canAccess(device, token as string)) {
+            const token = message.data as string;
+
+            const device = canAccess(token);
+            if (!device) {
                 ws.close();
                 return;
             }
-            
+
             const videoStream = await device.getVideoStream();
             const offer = await mediaManager.convertMediaObjectToBuffer(
-              videoStream,
-              ScryptedMimeTypes.RTCAVOffer
+                videoStream,
+                ScryptedMimeTypes.RTCAVOffer
             );
 
             ws.send(offer.toString());
-            
+
             const answer = await new Promise(resolve => ws.onmessage = (message) => resolve(message.data));
             const mo = mediaManager.createMediaObject(Buffer.from(answer), ScryptedMimeTypes.RTCAVAnswer);
             mediaManager.convertMediaObjectToBuffer(mo, ScryptedMimeTypes.RTCAVOffer);
@@ -185,7 +184,7 @@ class GoogleHome extends ScryptedDeviceBase implements HttpRequestHandler, Engin
 
                 try {
                     if (device.interfaces.includes(ScryptedInterface.Refresh))
-                        (device  as any as Refresh).refresh(null, true);
+                        (device as any as Refresh).refresh(null, true);
                     const status = await supportedType.query(device);
                     ret.payload.devices[queryDevice.id] = Object.assign({
                         status: 'SUCCESS',
